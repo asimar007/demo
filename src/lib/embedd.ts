@@ -1,7 +1,7 @@
 import { VoyageEmbeddings } from "@langchain/community/embeddings/voyage";
 
 const embeddings = new VoyageEmbeddings({
-  apiKey: process.env.VOYAGE_API_KEY, // In Node.js defaults to process.env.VOYAGEAI_API_KEY
+  apiKey: process.env.VOYAGEAI_API_KEY, // In Node.js defaults to process.env.VOYAGEAI_API_KEY
   inputType: "document", // Optional: specify input type as 'query', 'document', or omit for None / Undefined / Null
 });
 
