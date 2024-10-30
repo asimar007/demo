@@ -8,6 +8,8 @@ import { api } from "../../../../convex/_generated/api";
 export const AddVideo = () => {
   const addVideo = useAction(api.video.addVideo);
 
+  console.log(addVideo);
+
   const [video, setVideo] = useState({
     title: "",
     url: "",
