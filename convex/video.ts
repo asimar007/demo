@@ -1,3 +1,5 @@
+// convex/video.ts
+
 import { v } from "convex/values";
 import {
   action,
@@ -5,36 +7,33 @@ import {
   internalQuery,
   query,
 } from "./_generated/server";
-import { embedd } from "../src/lib/embedd";
+import { embedd } from "../src/lib/embedd"; // Embedding library
 import { internal } from "./_generated/api";
 import { Doc } from "./_generated/dataModel";
 
+// 1. Fetch multiple videos by IDs
 export const fetchVideosData = internalQuery({
   args: { ids: v.array(v.id("videos")) },
   handler: async (ctx, args) => {
     const results = [];
     for (const id of args.ids) {
       const video = await ctx.db.get(id);
-      if (video) {
-        results.push(video);
-      }
+      if (video) results.push(video);
     }
     return results;
   },
 });
 
+// 2. Find similar videos using embeddings
 export const similarVideos = action({
-  args: {
-    query: v.string(),
-  },
+  args: { query: v.string() },
   handler: async (ctx, args) => {
     const embeddings = await embedd(args.query);
-    console.log(embeddings);
+    console.log("Embeddings:", embeddings);
 
     const result = await ctx.vectorSearch("videos", "by_search", {
       vector: embeddings,
       limit: 2,
-      //TODO: add filter
     });
 
     const videoIds = result.map((r) => r._id);
@@ -47,6 +46,7 @@ export const similarVideos = action({
   },
 });
 
+// 3. Insert a new video with embeddings
 export const insertVideos = internalMutation({
   args: {
     title: v.string(),
@@ -57,7 +57,6 @@ export const insertVideos = internalMutation({
     embeddings: v.array(v.float64()),
   },
   handler: async (ctx, args) => {
-    //checks
     if (
       !args.title ||
       !args.url ||
@@ -81,6 +80,7 @@ export const insertVideos = internalMutation({
   },
 });
 
+// 4. Add a new video and generate embeddings
 export const addVideo = action({
   args: {
     title: v.string(),
@@ -90,7 +90,6 @@ export const addVideo = action({
     category: v.string(),
   },
   handler: async (ctx, args) => {
-    //checks
     if (
       !args.title ||
       !args.url ||
@@ -100,8 +99,6 @@ export const addVideo = action({
     ) {
       throw new Error("Missing required fields");
     }
-
-    console.log(args.title);
 
     const embeddings = await embedd(args.title);
     await ctx.runMutation(internal.video.insertVideos, {
@@ -117,6 +114,7 @@ export const addVideo = action({
   },
 });
 
+// 5. Fetch all videos
 export const allVideos = query({
   args: {},
   handler: async (ctx) => {
@@ -125,16 +123,11 @@ export const allVideos = query({
   },
 });
 
+// 6. Fetch a single video by ID
 export const getVideo = query({
-  args: {
-    id: v.id("videos"),
-  },
+  args: { id: v.id("videos") },
   handler: async (ctx, args) => {
-    if (!args.id) {
-      return null;
-    }
-
-    const video = await ctx.db.get(args.id);
-    return video;
+    if (!args.id) return null;
+    return await ctx.db.get(args.id);
   },
 });
